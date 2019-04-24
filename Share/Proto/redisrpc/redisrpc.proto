@@ -1,0 +1,15 @@
+syntax = "proto3";
+package redisrpc;
+
+// test rpc
+message TestRedisRequest {
+	  string test = 1;
+}
+
+message TestRedisResponse {
+	  string reply = 1;
+}
+
+service Redis {
+	rpc TestRedis(TestRedisRequest) returns (TestRedisResponse){}
+}

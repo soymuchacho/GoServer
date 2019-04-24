@@ -1,0 +1,24 @@
+[2019-04-24 09:46:43.547 AM BST] [Info] [main.go.29] this is the redis server
+[2019-04-24 09:54:22.453 AM BST] [Info] [main.go.29] this is the redis server
+[2019-04-24 09:54:59.591 AM BST] [Info] [main.go.29] this is the redis server
+[2019-04-24 09:55:32.248 AM BST] [Info] [main.go.28] this is the redis server
+[2019-04-24 09:57:51.397 AM BST] [Info] [main.go.35] register redis server rpc
+[2019-04-24 09:57:51.405 AM BST] [Info] [main.go.45] redis server start succsessful
+[2019-04-24 10:06:20.711 AM BST] [Info] [main.go.41] read config redis_rpc_listen:127.0.0.1:50000
+[2019-04-24 10:06:20.714 AM BST] [Info] [main.go.53] register redis server rpc
+[2019-04-24 10:06:20.716 AM BST] [Info] [main.go.63] redis server start succsessful
+[2019-04-24 10:06:39.608 AM BST] [Info] [main.go.41] read config redis_rpc_listen 127.0.0.1:50000
+[2019-04-24 10:06:39.61 AM BST] [Info] [main.go.53] register redis server rpc
+[2019-04-24 10:06:39.614 AM BST] [Info] [main.go.63] redis server start succsessful
+[2019-04-24 10:07:14.212 AM BST] [Info] [main.go.41] read config redis_rpc_listen 127.0.0.1:50000
+[2019-04-24 10:07:14.214 AM BST] [Info] [main.go.51] register redis server rpc
+[2019-04-24 10:07:14.218 AM BST] [Info] [main.go.61] redis server start succsessful
+[2019-04-24 10:15:36.711 AM BST] [Info] [main.go.43] read config redis_rpc_listen 127.0.0.1:50000
+[2019-04-24 10:15:36.713 AM BST] [Info] [main.go.70] register redis server rpc
+[2019-04-24 10:15:36.717 AM BST] [Info] [main.go.57] redis server start succsessful
+[2019-04-24 18:00:36.544 PM CST] [Info] [main.go.43] read config redis_rpc_listen 0.0.0.0:50000
+[2019-04-24 18:00:36.553 PM CST] [Info] [main.go.70] register redis server rpc
+[2019-04-24 18:00:36.553 PM CST] [Info] [main.go.57] redis server start succsessful
+[2019-04-24 11:18:09.269 AM BST] [Info] [main.go.43] read config redis_rpc_listen 0.0.0.0:50000
+[2019-04-24 11:18:09.27 AM BST] [Info] [main.go.70] register redis server rpc
+[2019-04-24 11:18:09.274 AM BST] [Info] [main.go.57] redis server start succsessful
