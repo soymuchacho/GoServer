@@ -2,7 +2,7 @@
 	<outputs formatid="main">
 		<console/>
 		<buffered size="10000" flushperiod="1000">
-			<rollingfile type="size" filename="./log/RedisServer.log" maxsize="100000000" maxrolls="200"/>
+			<rollingfile type="size" filename="/var/log/RedisServer.log" maxsize="100000000" maxrolls="200"/>
 		</buffered>
 	</outputs>
 	<formats>
