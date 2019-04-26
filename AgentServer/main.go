@@ -45,8 +45,8 @@ func main() {
 		TcpListen: tcplisaddr,
 	}
 
-	var handler handle.ClientHandler
-	err = network.TcpServer(config, handler)
+	var ioop handle.Handler
+	err = network.TcpServer(config, ioop)
 	if err != nil {
 		log.Error("tcp listen error ", err)
 		panic(err)

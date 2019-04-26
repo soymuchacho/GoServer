@@ -4,12 +4,11 @@ import (
 	log "github.com/cihub/seelog"
 )
 
-type ClientHandler interface {
-	RecvHandler(msg []byte) error
+type Handler struct {
 }
 
-func RecvHandler(msg []byte) error {
+func (h Handler) RecvMsg(msg []byte) error {
 	log.Debug("Recv msg size ", len(msg))
-	route()
+	//route()
 	return nil
 }

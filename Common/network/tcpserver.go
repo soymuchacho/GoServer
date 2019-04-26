@@ -11,7 +11,7 @@ import (
 	log "github.com/cihub/seelog"
 )
 
-func TcpServer(config *config.Config, itf interface{}) error {
+func TcpServer(config *config.Config, ioop IOOperate) error {
 	// resolve address & start listening
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", config.TcpListen)
 	if err != nil {
@@ -38,11 +38,11 @@ func TcpServer(config *config.Config, itf interface{}) error {
 		conn.SetWriteBuffer(config.SockBuf)
 
 		// start a goroutine for every incoming connection for reading
-		go handleClient(conn, config, itf)
+		go handleClient(conn, config, ioop)
 	}
 }
 
-func handleClient(conn net.Conn, config *config.Config, itf interface{}) error {
+func handleClient(conn net.Conn, config *config.Config, ioop IOOperate) error {
 	defer conn.Close()
 
 	host, port, err := net.SplitHostPort(conn.RemoteAddr().String())
@@ -58,7 +58,7 @@ func handleClient(conn net.Conn, config *config.Config, itf interface{}) error {
 		Port:     port,
 	}
 
-	go sess.Start(config, itf)
+	go sess.Start(config, ioop)
 
 	header := make([]byte, 2)
 	// read loop

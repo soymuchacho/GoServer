@@ -8,6 +8,10 @@ import (
 	"GoServer/Common/config"
 )
 
+type IOOperate interface {
+	RecvMsg(msg []byte) error
+}
+
 type Session struct {
 	Ip           string // session Ip address
 	Port         string // session Port
@@ -21,7 +25,7 @@ type Session struct {
 	Die          chan int // session die chan
 }
 
-func (this *Session) Start(config *config.Config, itf interface{}) {
+func (this *Session) Start(config *config.Config, ioop IOOperate) {
 
 	this.In = make(chan []byte, config.QueueSize)
 	this.Out = make(chan []byte)
@@ -32,7 +36,7 @@ func (this *Session) Start(config *config.Config, itf interface{}) {
 		case msg, ok := <-this.In:
 			fmt.Println("write msg len : ", len(msg))
 			if ok {
-
+				ioop.RecvMsg(msg)
 			}
 		case msg, ok := <-this.Out:
 			fmt.Println("write msg len : ", len(msg))
