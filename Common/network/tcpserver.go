@@ -23,7 +23,7 @@ func TcpServer(config *config.Config, ioop IOOperate) error {
 		return err
 	}
 
-	log.Debug("listening on:", listener.Addr())
+	log.Info("Listen to addr : ", tcpAddr)
 
 	// loop accepting
 	for {
@@ -56,45 +56,50 @@ func handleClient(conn net.Conn, config *config.Config, ioop IOOperate) error {
 		ConnTime: time.Now().Unix(),
 		Ip:       host,
 		Port:     port,
+		Ioop:     ioop,
 	}
 
-	defer func() {
-		ioop.OnDisConnect(sess)
-		sess.Close()
+	err = func() error {
+		defer sess.Close()
+
+		go sess.Start(config)
+
+		header := make([]byte, 2)
+
+		// read loop
+		for {
+			// solve dead link problem:
+			// physical disconnection without any communcation between client and server
+			// will cause the read to block FOREVER, so a timeout is a rescue.
+			conn.SetReadDeadline(time.Now().Add(config.ReadDeadline))
+
+			// read 2B header
+			n, err := io.ReadFull(conn, header)
+			if err != nil {
+				log.Debug("read header failed Ip ", sess.Ip, " err ", err, " size ", n)
+				return err
+			}
+			size := binary.BigEndian.Uint16(header)
+			log.Debug("recv msg size ", size)
+			// alloc a byte slice of the size defined in the header for reading data
+			payload := make([]byte, size)
+			n, err = io.ReadFull(conn, payload)
+			if err != nil {
+				log.Debug("read payload failed, ip: ", sess.Ip, " reason:", err, " size:", n)
+				return err
+			}
+			log.Debug("recv end size ", n)
+			// deliver the data to the input queue
+			select {
+			case sess.In <- payload: // payload queued
+			case <-sess.Die:
+				log.Warn("recv die signal , close this session")
+				return nil
+			}
+		}
+		return nil
 	}()
 
-	go sess.Start(config, ioop)
-
-	header := make([]byte, 2)
-	// read loop
-	for {
-		// solve dead link problem:
-		// physical disconnection without any communcation between client and server
-		// will cause the read to block FOREVER, so a timeout is a rescue.
-		conn.SetReadDeadline(time.Now().Add(config.ReadDeadline))
-
-		// read 2B header
-		n, err := io.ReadFull(conn, header)
-		if err != nil {
-			log.Debug("read header failed Ip ", sess.Ip, " err ", err, " size ", n)
-			return err
-		}
-		size := binary.BigEndian.Uint16(header)
-		log.Debug("recv msg size ", size)
-		// alloc a byte slice of the size defined in the header for reading data
-		payload := make([]byte, size)
-		n, err = io.ReadFull(conn, payload)
-		if err != nil {
-			log.Debug("read payload failed, ip:%v reason:%v size:%v", sess.Ip, err, n)
-			return err
-		}
-
-		// deliver the data to the input queue
-		select {
-		case sess.In <- payload: // payload queued
-		case <-sess.Die:
-			return nil
-		}
-	}
-
+	log.Debug("handleClient funtion end")
+	return err
 }

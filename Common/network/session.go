@@ -1,12 +1,13 @@
 package network
 
 import (
-	"fmt"
 	"net"
 	"sync"
 	"time"
 
 	"GoServer/Common/config"
+
+	log "github.com/cihub/seelog"
 )
 
 type IOOperate interface {
@@ -32,9 +33,12 @@ type Session struct {
 	PackTime     int64    // session recv pack time
 	LastPackTime int64    // session last recv pack time
 	Die          chan int // session die chan
+	outWsig      chan int // session die write
+	outRsig      chan int // session die recv
+	Ioop         IOOperate
 }
 
-func (this *Session) Start(config *config.Config, ioop IOOperate) {
+func (this *Session) Start(config *config.Config) {
 	func() {
 		this.SeMutex.Lock()
 		defer this.SeMutex.Unlock()
@@ -42,29 +46,50 @@ func (this *Session) Start(config *config.Config, ioop IOOperate) {
 		this.In = make(chan []byte, config.QueueSize)
 		this.Out = make(chan []byte)
 		this.Die = make(chan int)
+		this.outWsig = make(chan int)
+		this.outRsig = make(chan int)
+
 		this.ConnTime = time.Now().Unix()
 		this.Flag = SESSION_FLAG_CONNECTED
 	}()
 
-	ioop.OnConnect(this)
+	this.Ioop.OnConnect(this)
+	go this.connWrite()
+	go this.connRecv()
+}
 
+func (this *Session) connRecv() {
+	defer log.Debug("connRecv funtion end")
 	for {
 		select {
 		case msg, ok := <-this.In:
 			if ok {
-				ioop.OnRecv(this, msg)
+				this.Ioop.OnRecv(this, msg)
 			}
-		case msg, ok := <-this.Out:
-			if ok {
-				n, err := this.Conn.Write(msg)
-				if err != nil {
-					fmt.Println("connection write error : ", err)
-				} else {
-					fmt.Println("connection write byte size ", n)
-				}
-			}
+		case <-this.outRsig:
+			return
 		}
 	}
+}
+
+func (this *Session) connWrite() {
+	defer log.Debug("connWrite funtion end")
+	for {
+		select {
+		case msg, ok := <-this.Out:
+			if ok {
+				_, err := this.Conn.Write(msg)
+				if err != nil {
+					log.Error("seesion write msg error : ", err)
+				} else {
+				}
+			}
+		case <-this.outWsig:
+			log.Debug("session write loop end")
+			return
+		}
+	}
+
 }
 
 func (this *Session) Send(msg []byte) error {
@@ -73,6 +98,11 @@ func (this *Session) Send(msg []byte) error {
 }
 
 func (this *Session) Close() error {
+	this.Ioop.OnDisConnect(this)
+	this.outRsig <- 1
+	this.outWsig <- 1
+
 	this.Conn.Close()
+	log.Warn("session disconnect ip[", this.Ip, "] port[", this.Port, "]")
 	return nil
 }

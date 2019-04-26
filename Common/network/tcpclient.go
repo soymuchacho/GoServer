@@ -5,29 +5,35 @@ import (
 	"encoding/binary"
 	"io"
 	"net"
+	"strings"
 
 	log "github.com/cihub/seelog"
 )
 
 func TcpConnect(config *config.Config, ioop IOOperate) error {
 	// resolve address & start listening
-	tcpAddr, err := net.ResolveTCPAddr("tcp4", config.TcpListen)
+	tcpAddr, err := net.ResolveTCPAddr("tcp4", config.TcpConn)
 	if err != nil {
+		log.Error("resolve tcp addr error : ", err)
 		return err
 	}
 
 	conn, err := net.DialTCP("tcp", nil, tcpAddr)
 	if err != nil {
+		log.Error("connect tcp address[%s] error : ", config.TcpConn)
 		return err
 	}
 
+	address := strings.Split(config.TcpConn, ":")
+
 	sess := &Session{
-		Ip:   config.TcpListen,
-		Port: config.TcpListen,
+		Ip:   address[0],
+		Port: address[1],
 		Conn: conn,
+		Ioop: ioop,
 	}
 
-	go sess.Start(config, ioop)
+	go sess.Start(config)
 	defer func() {
 		ioop.OnDisConnect(sess)
 		sess.Close()
@@ -43,7 +49,7 @@ func TcpConnect(config *config.Config, ioop IOOperate) error {
 		// read 2B header
 		n, err := io.ReadFull(conn, header)
 		if err != nil {
-			log.Debug("read header failed Ip ", sess.Ip, " err ", err, " size ", n)
+			log.Error("read header error ip [", sess.Ip, "] err [", err, "] size [", n, "]")
 			return err
 		}
 		size := binary.BigEndian.Uint16(header)
