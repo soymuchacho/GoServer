@@ -29,7 +29,6 @@ func main() {
 	r, err := c.TestRedis(context.Background(), &pb.TestRedisRequest{Test: " Redis Test "})
 	if err != nil {
 		fmt.Println("Request Redis Test Error ", err)
-		return
 	}
 	fmt.Println("Reply : ", r.Reply)
 	r, err = c.TestRedis(context.Background(), &pb.TestRedisRequest{Test: " Redis Test "})

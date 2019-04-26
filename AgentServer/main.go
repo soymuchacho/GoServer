@@ -6,6 +6,7 @@ import (
 	"GoServer/Common/network"
 	"os"
 	"public"
+	"time"
 
 	"github.com/Unknwon/goconfig"
 	log "github.com/cihub/seelog"
@@ -42,7 +43,9 @@ func main() {
 	}
 
 	config := &config.Config{
-		TcpListen: tcplisaddr,
+		TcpListen:    tcplisaddr,
+		ReadDeadline: 10 * time.Second,
+		SockBuf:      32767,
 	}
 
 	var ioop handle.Handler

@@ -1,18 +1,27 @@
 package network
 
 import (
-	"errors"
 	"fmt"
 	"net"
+	"sync"
+	"time"
 
 	"GoServer/Common/config"
 )
 
 type IOOperate interface {
-	RecvMsg(msg []byte) error
+	OnConnect(sess *Session)
+	OnRecv(sess *Session, msg []byte)
+	OnDisConnect(sess *Session)
 }
 
+const (
+	SESSION_FLAG_CONNECTED = iota
+	SESSION_FLAG_DISCONNED
+)
+
 type Session struct {
+	SeMutex      sync.Mutex
 	Ip           string // session Ip address
 	Port         string // session Port
 	Conn         net.Conn
@@ -26,20 +35,26 @@ type Session struct {
 }
 
 func (this *Session) Start(config *config.Config, ioop IOOperate) {
+	func() {
+		this.SeMutex.Lock()
+		defer this.SeMutex.Unlock()
 
-	this.In = make(chan []byte, config.QueueSize)
-	this.Out = make(chan []byte)
-	this.Die = make(chan int)
+		this.In = make(chan []byte, config.QueueSize)
+		this.Out = make(chan []byte)
+		this.Die = make(chan int)
+		this.ConnTime = time.Now().Unix()
+		this.Flag = SESSION_FLAG_CONNECTED
+	}()
+
+	ioop.OnConnect(this)
 
 	for {
 		select {
 		case msg, ok := <-this.In:
-			fmt.Println("write msg len : ", len(msg))
 			if ok {
-				ioop.RecvMsg(msg)
+				ioop.OnRecv(this, msg)
 			}
 		case msg, ok := <-this.Out:
-			fmt.Println("write msg len : ", len(msg))
 			if ok {
 				n, err := this.Conn.Write(msg)
 				if err != nil {
@@ -48,18 +63,16 @@ func (this *Session) Start(config *config.Config, ioop IOOperate) {
 					fmt.Println("connection write byte size ", n)
 				}
 			}
-		case <-this.Die:
-			return
 		}
 	}
 }
 
-func (this *Session) Send(msgtype int16, pb interface{}) error {
-	msg := Pack(msgtype, pb, nil)
-	if msg == nil {
-		fmt.Println("send error pack is nil")
-		return errors.New("send error : pack is nil")
-	}
+func (this *Session) Send(msg []byte) error {
 	this.Out <- msg
+	return nil
+}
+
+func (this *Session) Close() error {
+	this.Conn.Close()
 	return nil
 }

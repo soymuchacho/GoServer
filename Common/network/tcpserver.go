@@ -54,9 +54,14 @@ func handleClient(conn net.Conn, config *config.Config, ioop IOOperate) error {
 	sess := &Session{
 		Conn:     conn,
 		ConnTime: time.Now().Unix(),
-		Ip:       string(net.ParseIP(host)),
+		Ip:       host,
 		Port:     port,
 	}
+
+	defer func() {
+		ioop.OnDisConnect(sess)
+		sess.Close()
+	}()
 
 	go sess.Start(config, ioop)
 
@@ -71,11 +76,11 @@ func handleClient(conn net.Conn, config *config.Config, ioop IOOperate) error {
 		// read 2B header
 		n, err := io.ReadFull(conn, header)
 		if err != nil {
-			log.Debug("read header failed, ip:%v reason:%v size:%v", sess.Ip, err, n)
+			log.Debug("read header failed Ip ", sess.Ip, " err ", err, " size ", n)
 			return err
 		}
 		size := binary.BigEndian.Uint16(header)
-
+		log.Debug("recv msg size ", size)
 		// alloc a byte slice of the size defined in the header for reading data
 		payload := make([]byte, size)
 		n, err = io.ReadFull(conn, payload)
@@ -88,7 +93,6 @@ func handleClient(conn net.Conn, config *config.Config, ioop IOOperate) error {
 		select {
 		case sess.In <- payload: // payload queued
 		case <-sess.Die:
-			log.Debug("connection closed by logic, flag:%v ip:%v", sess.Flag, sess.Ip)
 			return nil
 		}
 	}

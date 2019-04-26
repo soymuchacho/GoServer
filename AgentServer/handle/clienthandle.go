@@ -1,14 +1,22 @@
 package handle
 
 import (
+	"GoServer/Common/network"
+
 	log "github.com/cihub/seelog"
 )
 
 type Handler struct {
 }
 
-func (h Handler) RecvMsg(msg []byte) error {
+func (h Handler) OnRecv(sess *network.Session, msg []byte) {
 	log.Debug("Recv msg size ", len(msg))
-	//route()
-	return nil
+}
+
+func (h Handler) OnConnect(sess *network.Session) {
+	log.Debug("OnConnect")
+}
+
+func (h Handler) OnDisConnect(sess *network.Session) {
+	log.Debug("OnDisConnect")
 }
