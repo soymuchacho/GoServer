@@ -7,6 +7,7 @@ type Config struct {
 	RpcListen    string
 	TcpListen    string
 	UdpListen    string
+	HttpListen   string
 	TcpConn      string
 	UpdConn      string
 	SockBuf      int
