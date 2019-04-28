@@ -1,3 +1,1 @@
 # GoServer
-
-# test for collaborator
