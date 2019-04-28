@@ -1,6 +1,8 @@
 package network
 
 import (
+	"bytes"
+	"encoding/binary"
 	"net"
 	"sync"
 	"time"
@@ -53,9 +55,10 @@ func (this *Session) Start(config *config.Config) {
 		this.Flag = SESSION_FLAG_CONNECTED
 	}()
 
-	this.Ioop.OnConnect(this)
 	go this.connWrite()
 	go this.connRecv()
+
+	this.Ioop.OnConnect(this)
 }
 
 func (this *Session) connRecv() {
@@ -92,8 +95,16 @@ func (this *Session) connWrite() {
 
 }
 
-func (this *Session) Send(msg []byte) error {
-	this.Out <- msg
+func (this *Session) Send(pk *Packet) error {
+	// add packet head
+	var psize uint16 = uint16(pk.Length())
+
+	log.Debug("send packet length ", pk.Length(), " ", psize)
+	buf := new(bytes.Buffer)
+	binary.Write(buf, binary.BigEndian, psize)
+	buf.Write(pk.Data()[:psize])
+
+	this.Out <- buf.Bytes()
 	return nil
 }
 

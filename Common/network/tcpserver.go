@@ -80,7 +80,7 @@ func handleClient(conn net.Conn, config *config.Config, ioop IOOperate) error {
 				return err
 			}
 			size := binary.BigEndian.Uint16(header)
-			log.Debug("recv msg size ", size)
+			//log.Debug("recv msg size ", size)
 			// alloc a byte slice of the size defined in the header for reading data
 			payload := make([]byte, size)
 			n, err = io.ReadFull(conn, payload)
@@ -88,7 +88,7 @@ func handleClient(conn net.Conn, config *config.Config, ioop IOOperate) error {
 				log.Debug("read payload failed, ip: ", sess.Ip, " reason:", err, " size:", n)
 				return err
 			}
-			log.Debug("recv end size ", n)
+			//log.Debug("recv end size ", n)
 			// deliver the data to the input queue
 			select {
 			case sess.In <- payload: // payload queued

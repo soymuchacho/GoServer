@@ -6,6 +6,7 @@ import (
 	"GoServer/Common/network"
 	"os"
 	"public"
+	"runtime"
 	"time"
 
 	"github.com/Unknwon/goconfig"
@@ -14,6 +15,7 @@ import (
 
 func main() {
 	defer public.PanicHandler()
+	defer log.Flush()
 	//load log config file
 	_, e := os.Stat("conf/seelog.xml")
 	if e != nil {
@@ -41,6 +43,9 @@ func main() {
 	} else {
 		log.Info("read config agent_tcp_listen ", tcplisaddr)
 	}
+
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	log.Warn("Cpu number: ", runtime.NumCPU())
 
 	config := &config.Config{
 		TcpListen:    tcplisaddr,

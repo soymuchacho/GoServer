@@ -1,8 +1,9 @@
 package network
 
 import (
-	"log"
 	"reflect"
+
+	log "github.com/cihub/seelog"
 )
 
 type FastPack interface {
@@ -72,6 +73,7 @@ func _pack(v reflect.Value, writer *Packet) {
 		_pack(v.Elem(), writer)
 	case reflect.Slice:
 		if bs, ok := v.Interface().([]byte); ok { // special treat for []bytes
+			//log.Debug("packet write reflect Slice bytes")
 			writer.WriteBytes(bs)
 		} else {
 			l := v.Len()
@@ -86,6 +88,6 @@ func _pack(v reflect.Value, writer *Packet) {
 			_pack(v.Field(i), writer)
 		}
 	default:
-		log.Println("cannot pack type:", v)
+		log.Error("cannot pack type:", v)
 	}
 }

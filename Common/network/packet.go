@@ -212,8 +212,10 @@ func (p *Packet) WriteByte(v byte) {
 }
 
 func (p *Packet) WriteBytes(v []byte) {
+	//log.Debug("packet write bytes len : ", len(v))
 	p.WriteU16(uint16(len(v)))
 	p.data = append(p.data, v...)
+	//log.Debug("packet after write bytes len : ", p.Length())
 }
 
 func (p *Packet) WriteRawBytes(v []byte) {
