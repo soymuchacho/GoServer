@@ -7,15 +7,50 @@ import (
 	"sync"
 	"time"
 
-	"GoServer/Common/config"
-
 	log "github.com/cihub/seelog"
 )
 
-type IOOperate interface {
+type NetAPI interface {
 	OnConnect(sess *Session)
 	OnRecv(sess *Session, msg []byte)
 	OnDisConnect(sess *Session)
+}
+
+type NetApiBase struct {
+}
+
+type NetDriver struct {
+	netApi NetAPI
+}
+
+func (this *NetDriver) OnConnect(sess *Session) {
+	if this.netApi == nil {
+		log.Debug("netdriver connect function, please drive it")
+	} else {
+		this.netApi.OnConnect(sess)
+	}
+}
+
+func (this *NetDriver) OnRecv(sess *Session, msg []byte) {
+	if this.netApi == nil {
+		log.Debug("netdriver recv function, please drive it")
+	} else {
+		this.netApi.OnRecv(sess, msg)
+	}
+}
+
+func (this *NetDriver) OnDisConnect(sess *Session) {
+	if this.netApi == nil {
+		log.Debug("netdriver disconnect function, please drive it")
+	} else {
+		this.netApi.OnDisConnect(sess)
+	}
+}
+
+func NewNetDriver(api NetAPI) *NetDriver {
+	return &NetDriver{
+		netApi: api,
+	}
 }
 
 const (
@@ -24,50 +59,72 @@ const (
 )
 
 type Session struct {
-	SeMutex      sync.Mutex
-	Ip           string // session Ip address
-	Port         string // session Port
-	Conn         net.Conn
-	In           chan []byte
-	Out          chan []byte
-	Flag         int32
-	ConnTime     int64    // session connect time
-	PackTime     int64    // session recv pack time
-	LastPackTime int64    // session last recv pack time
-	Die          chan int // session die chan
-	outWsig      chan int // session die write
-	outRsig      chan int // session die recv
-	Ioop         IOOperate
+	seMux   sync.Mutex
+	ip      string // session Ip address
+	port    string // session Port
+	conn    net.Conn
+	in      chan []byte
+	out     chan []byte
+	outWsig chan int // session die write
+	outRsig chan int // session die recv
+
+	flag         int
+	connTime     int64    // session connect time
+	packTime     int64    // session recv pack time
+	lastPackTime int64    // session last recv pack time
+	die          chan int // session die chan
 }
 
-func (this *Session) Start(config *config.Config) {
-	func() {
-		this.SeMutex.Lock()
-		defer this.SeMutex.Unlock()
+func NewSession(conn net.Conn, ip string, port string, queueSize int) *Session {
+	sess := &Session{}
 
-		this.In = make(chan []byte, config.QueueSize)
-		this.Out = make(chan []byte)
-		this.Die = make(chan int)
-		this.outWsig = make(chan int)
-		this.outRsig = make(chan int)
+	sess.conn = conn
+	sess.ip = ip
+	sess.port = port
+	sess.in = make(chan []byte, queueSize)
+	sess.out = make(chan []byte)
+	sess.die = make(chan int)
+	sess.outWsig = make(chan int)
+	sess.outRsig = make(chan int)
 
-		this.ConnTime = time.Now().Unix()
-		this.Flag = SESSION_FLAG_CONNECTED
-	}()
+	sess.connTime = time.Now().Unix()
+	sess.flag = SESSION_FLAG_CONNECTED
 
-	go this.connWrite()
-	go this.connRecv()
-
-	this.Ioop.OnConnect(this)
+	return sess
 }
 
-func (this *Session) connRecv() {
+func (this *Session) GetDie() chan int {
+	return this.die
+}
+
+func (this *Session) GetIn() chan []byte {
+	return this.in
+}
+
+func (this *Session) GetIp() string {
+	return this.ip
+}
+
+func (this *Session) GetPort() string {
+	return this.port
+}
+
+func (this *Session) Start(ioop *NetDriver) {
+	this.seMux.Lock()
+	defer this.seMux.Unlock()
+
+	go this.connWrite(ioop)
+	go this.connRecv(ioop)
+
+}
+
+func (this *Session) connRecv(ioop *NetDriver) {
 	defer log.Debug("connRecv funtion end")
 	for {
 		select {
-		case msg, ok := <-this.In:
+		case msg, ok := <-this.in:
 			if ok {
-				this.Ioop.OnRecv(this, msg)
+				ioop.OnRecv(this, msg)
 			}
 		case <-this.outRsig:
 			return
@@ -75,13 +132,13 @@ func (this *Session) connRecv() {
 	}
 }
 
-func (this *Session) connWrite() {
+func (this *Session) connWrite(ioop *NetDriver) {
 	defer log.Debug("connWrite funtion end")
 	for {
 		select {
-		case msg, ok := <-this.Out:
+		case msg, ok := <-this.out:
 			if ok {
-				_, err := this.Conn.Write(msg)
+				_, err := this.conn.Write(msg)
 				if err != nil {
 					log.Error("seesion write msg error : ", err)
 				} else {
@@ -104,16 +161,15 @@ func (this *Session) Send(pk *Packet) error {
 	binary.Write(buf, binary.BigEndian, psize)
 	buf.Write(pk.Data()[:psize])
 
-	this.Out <- buf.Bytes()
+	this.out <- buf.Bytes()
 	return nil
 }
 
 func (this *Session) Close() error {
-	this.Ioop.OnDisConnect(this)
 	this.outRsig <- 1
 	this.outWsig <- 1
 
-	this.Conn.Close()
-	log.Warn("session disconnect ip[", this.Ip, "] port[", this.Port, "]")
+	this.conn.Close()
+	log.Warn("session disconnect ip[", this.ip, "] port[", this.port, "]")
 	return nil
 }

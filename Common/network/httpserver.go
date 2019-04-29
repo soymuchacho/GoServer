@@ -7,17 +7,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type HttpConfig struct {
+type HttpDriver struct {
 	routersMp map[string]map[string]gin.HandlerFunc
 }
 
-func NewHttpConfig() *HttpConfig {
-	return &HttpConfig{
+func NewHttpDriver() *HttpDriver {
+	return &HttpDriver{
 		routersMp: make(map[string]map[string]gin.HandlerFunc),
 	}
 }
 
-func (this *HttpConfig) AddRouter(hType string, hPath string, cb gin.HandlerFunc) {
+func (this *HttpDriver) AddRouter(hType string, hPath string, cb gin.HandlerFunc) {
 	if _, ok := this.routersMp[hType]; ok {
 		this.routersMp[hType][hPath] = cb
 	} else {
@@ -26,10 +26,10 @@ func (this *HttpConfig) AddRouter(hType string, hPath string, cb gin.HandlerFunc
 	}
 }
 
-func HttpServer(config *config.Config, hpConfig *HttpConfig) error {
+func (this *HttpDriver) HttpServer(config *config.Config) error {
 	router := gin.Default()
 
-	for httpType, value := range hpConfig.routersMp {
+	for httpType, value := range this.routersMp {
 		switch httpType {
 		case "GET":
 			for httpPath, funcs := range value {
@@ -44,6 +44,6 @@ func HttpServer(config *config.Config, hpConfig *HttpConfig) error {
 		}
 	}
 
-	go router.Run(config.HttpListen)
+	go router.Run(config.HttpCfg.Address)
 	return nil
 }

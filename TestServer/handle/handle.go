@@ -7,22 +7,17 @@ import (
 	log "github.com/cihub/seelog"
 )
 
-type Handler struct {
+type NetHandler struct {
 }
 
-type message struct {
-	a   int
-	msg string
-}
-
-func (h Handler) OnRecv(sess *network.Session, msg []byte) {
+func (h NetHandler) OnRecv(sess *network.Session, msg []byte) {
 	recvP := network.Reader(msg)
 	mtype, _ := recvP.ReadU16()
 	str, _ := recvP.ReadString()
 	log.Debug("recv type ", mtype, " msg : ", str)
 }
 
-func (h Handler) OnConnect(sess *network.Session) {
+func (h NetHandler) OnConnect(sess *network.Session) {
 	log.Debug("connect to server")
 
 	go func() {
@@ -42,6 +37,6 @@ func (h Handler) OnConnect(sess *network.Session) {
 	}()
 }
 
-func (h Handler) OnDisConnect(sess *network.Session) {
+func (h NetHandler) OnDisConnect(sess *network.Session) {
 	log.Debug("OnDisConnect")
 }

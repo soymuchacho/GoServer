@@ -6,12 +6,12 @@ import (
 	log "github.com/cihub/seelog"
 )
 
-type Handler struct {
-}
-
 var times uint64 = 0
 
-func (h Handler) OnRecv(sess *network.Session, msg []byte) {
+type NetHandler struct {
+}
+
+func (h NetHandler) OnRecv(sess *network.Session, msg []byte) {
 	//recvP := network.Reader(msg)
 	//mtype, _ := recvP.ReadU16()
 	//str, _ := recvP.ReadString()
@@ -25,10 +25,10 @@ func (h Handler) OnRecv(sess *network.Session, msg []byte) {
 	//log.Debug("end")
 }
 
-func (h Handler) OnConnect(sess *network.Session) {
-	log.Debug("client connect : ip [", sess.Ip, "] port [", sess.Port, "]")
+func (h NetHandler) OnConnect(sess *network.Session) {
+	log.Debug("client connect : ip [", sess.GetIp(), "] port [", sess.GetPort(), "]")
 }
 
-func (h Handler) OnDisConnect(sess *network.Session) {
-	log.Debug("client disconnect : ip [", sess.Ip, "] port [", sess.Port, "]")
+func (h NetHandler) OnDisConnect(sess *network.Session) {
+	log.Debug("client disconnect : ip [", sess.GetIp(), "] port [", sess.GetPort(), "]")
 }

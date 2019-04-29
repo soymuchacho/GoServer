@@ -10,9 +10,9 @@ import (
 	log "github.com/cihub/seelog"
 )
 
-func TcpConnect(config *config.Config, ioop IOOperate) error {
+func (this *NetDriver) TcpConnect(config *config.Config) error {
 	// resolve address & start listening
-	tcpAddr, err := net.ResolveTCPAddr("tcp4", config.TcpConn)
+	tcpAddr, err := net.ResolveTCPAddr("tcp4", config.NetCfg.Address)
 	if err != nil {
 		log.Error("resolve tcp addr error : ", err)
 		return err
@@ -20,36 +20,29 @@ func TcpConnect(config *config.Config, ioop IOOperate) error {
 
 	conn, err := net.DialTCP("tcp", nil, tcpAddr)
 	if err != nil {
-		log.Error("connect tcp address[%s] error : ", config.TcpConn)
+		log.Error("connect tcp address[%s] error : ", config.NetCfg.Address)
 		return err
 	}
 
-	address := strings.Split(config.TcpConn, ":")
+	address := strings.Split(config.NetCfg.Address, ":")
 
-	sess := &Session{
-		Ip:   address[0],
-		Port: address[1],
-		Conn: conn,
-		Ioop: ioop,
-	}
+	sess := NewSession(conn, address[0], address[1], config.NetCfg.QueueSize)
 
-	go sess.Start(config)
+	go sess.Start(this)
+
 	defer func() {
-		ioop.OnDisConnect(sess)
+		this.OnDisConnect(sess)
 		sess.Close()
 	}()
 
+	this.OnConnect(sess)
+
 	header := make([]byte, 2)
 	for {
-		// solve dead link problem:
-		// physical disconnection without any communcation between client and server
-		// will cause the read to block FOREVER, so a timeout is a rescue.
-		//conn.SetReadDeadline(time.Now().Add(config.ReadDeadline))
-
 		// read 2B header
 		n, err := io.ReadFull(conn, header)
 		if err != nil {
-			log.Error("read header error ip [", sess.Ip, "] err [", err, "] size [", n, "]")
+			log.Error("read header error ip [", address[0], "] err [", err, "] size [", n, "]")
 			return err
 		}
 		size := binary.BigEndian.Uint16(header)
@@ -58,14 +51,14 @@ func TcpConnect(config *config.Config, ioop IOOperate) error {
 		payload := make([]byte, size)
 		n, err = io.ReadFull(conn, payload)
 		if err != nil {
-			log.Debug("read payload failed, ip:%v reason:%v size:%v", sess.Ip, err, n)
+			log.Debug("read payload failed, ip:", address[0], "reason:", err, "size:", n)
 			return err
 		}
 
 		// deliver the data to the input queue
 		select {
-		case sess.In <- payload: // payload queued
-		case <-sess.Die:
+		case sess.in <- payload: // payload queued
+		case <-sess.die:
 			return nil
 		}
 	}

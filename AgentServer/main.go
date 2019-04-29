@@ -1,9 +1,9 @@
 package main
 
 import (
-	"GoServer/AgentServer/handle"
 	"GoServer/Common/config"
 	"GoServer/Common/network"
+	"GoServer/TestServer/handle"
 	"os"
 	"public"
 	"runtime"
@@ -48,13 +48,21 @@ func main() {
 	log.Warn("Cpu number: ", runtime.NumCPU())
 
 	config := &config.Config{
-		TcpListen:    tcplisaddr,
-		ReadDeadline: 10 * time.Second,
-		SockBuf:      32767,
+		ServName: "TestServer",
+		NetCfg: &config.NetworkCfg{
+			Name:         "",
+			NetType:      "tcp",
+			ConnType:     "listen",
+			Address:      tcplisaddr,
+			SockBuf:      32767,
+			ReadDeadline: 10 * time.Second,
+		},
 	}
 
-	var ioop handle.Handler
-	err = network.TcpServer(config, ioop)
+	var handler handle.NetHandler
+	netDriver := network.NewNetDriver(handler)
+
+	err = netDriver.TcpServer(config)
 	if err != nil {
 		log.Error("tcp listen error ", err)
 		panic(err)

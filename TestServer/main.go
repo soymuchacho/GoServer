@@ -3,7 +3,9 @@ package main
 import (
 	"GoServer/Common/config"
 	"GoServer/Common/network"
+	"GoServer/TestServer/handle"
 	"net/http"
+	"os"
 	"runtime"
 	"time"
 
@@ -14,37 +16,58 @@ import (
 func main() {
 	defer log.Flush()
 
+	//load log config file
+	_, e := os.Stat("conf/seelog.xml")
+	if e != nil {
+		log.Error("stat seelog.xml err %v", e)
+		return
+	}
+
+	logger, err := log.LoggerFromConfigAsFile("conf/seelog.xml")
+	if err != nil {
+		panic(err)
+	}
+	log.ReplaceLogger(logger)
+
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	log.Warn("Cpu number: ", runtime.NumCPU())
 
 	config := &config.Config{
-		TcpConn:      "127.0.0.1:50001",
-		ReadDeadline: 10 * time.Second,
-		SockBuf:      32767,
-		HttpListen:   "127.0.0.1:8080",
+		ServName: "TestServer",
+		NetCfg: &config.NetworkCfg{
+			Name:         "",
+			NetType:      "tcp",
+			ConnType:     "connect",
+			Address:      "127.0.0.1:50001",
+			SockBuf:      32767,
+			ReadDeadline: 10 * time.Second,
+		},
+		DbCfg: &config.DbServCfg{},
+		HttpCfg: &config.HttpServCfg{
+			Name:    "httpserv",
+			Address: "127.0.0.1:8000",
+		},
 	}
 
 	// Test Client
-	/*
-		for i := 0; i <= 2000; i++ {
-			go func() {
-				var ioop handle.Handler
-				err := network.TcpConnect(config, ioop)
-				if err != nil {
-					log.Debug("TcpConnect error : ", err)
-					return
-				}
-			}()
+	go func() {
+		var handler handle.NetHandler
+		netDriver := network.NewNetDriver(handler)
+		err := netDriver.TcpConnect(config)
+		if err != nil {
+			log.Debug("TcpConnect error : ", err)
+			return
 		}
-	*/
+	}()
 
 	// Test Http
-	hpConfig := network.NewHttpConfig()
-	hpConfig.AddRouter("GET", "/test", func(c *gin.Context) {
+
+	hpDrive := network.NewHttpDriver()
+	hpDrive.AddRouter("GET", "/test", func(c *gin.Context) {
 		log.Debug("Get /test")
 		c.String(http.StatusOK, "test1 OK")
 	})
 
-	network.HttpServer(config, hpConfig)
+	hpDrive.HttpServer(config)
 	select {}
 }
