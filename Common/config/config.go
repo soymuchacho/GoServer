@@ -40,6 +40,6 @@ type HttpServCfg struct {
 type Config struct {
 	ServName string
 	NetCfg   *NetworkCfg
-	DbCfg    *DbServCfg
+	DbCfgs   []*DbServCfg // one DBServCfg corresponds to one db connection
 	HttpCfg  *HttpServCfg
 }

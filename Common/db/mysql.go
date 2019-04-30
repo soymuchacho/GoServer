@@ -4,10 +4,17 @@ import (
 	"GoServer/Common/config"
 	"database/sql"
 	"fmt"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type Driver struct {
 	dbsMap map[string]*DB
+}
+
+type QueryData struct {
+	DbName string
+	Table  string
 }
 
 func NewDBDriver() *Driver {
@@ -18,11 +25,20 @@ func NewDBDriver() *Driver {
 
 func (this *Driver) Default(config *config.Config) error {
 
-	db, err := sql.Open(config.DbCfg.DBType, fmt.Sprintf("%s:%s@%s(%s)/%s?charset=utf8", config.DbCfg.User, config.DbCfg.Pwd, config.DbCfg.Protocol,
-		config.DbCfg.Addr, config.DbCfg.DataBase, config.DbCfg.Charset))
-	if err != nil {
-		log.Error(err)
-		return err
-	}
+	for cfg := range config.DBCfgs {
+		db, err := sql.Open(cfg.DBType, fmt.Sprintf("%s:%s@%s(%s)/%s?charset=utf8", cfg.User, cfg.Pwd, cfg.Protocol,
+			cfg.Addr, cfg.DataBase, cfg.Charset))
+		if err != nil {
+			log.Error("connect db ", cfg.DataBase, " err : ", err)
+			return err
+		}
 
+		dbsMap[cfg.DataBase] = db
+	}
+}
+
+func (this *Driver) QueryRow(datas []QueryData) {
+	for dbname, db := range dbsMap {
+
+	}
 }
