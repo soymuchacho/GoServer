@@ -37,9 +37,8 @@ stop() {
 }
 
 restart() {
-	#stop
-	#start
-	echo "restart"
+	stop
+	start
 }
 
 case "$1" in
