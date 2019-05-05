@@ -42,7 +42,6 @@ func main() {
 			SockBuf:      32767,
 			ReadDeadline: 10 * time.Second,
 		},
-		DbCfg: &config.DbServCfg{},
 		HttpCfg: &config.HttpServCfg{
 			Name:    "httpserv",
 			Address: "127.0.0.1:8000",
