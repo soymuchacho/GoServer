@@ -1,11 +1,15 @@
 package main
 
 import (
-	"GoServer/DBServer/modle"
 	"fmt"
+
+	"GoServer/Common/config"
+	"GoServer/Common/db"
 )
 
 func main() {
-	modle.ConvertTables()
+	dbdriver := db.NewDBDriver()
+	config := &config.Config{}
+	dbdriver.Default(config)
 	fmt.Println("this is the dbserver")
 }

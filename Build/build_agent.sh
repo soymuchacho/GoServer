@@ -1,17 +1,18 @@
 #!/bin/bash
 
-agentpath="../AgentServer"
+projectName="AgentServer"
+testpath="../"$projectName
 
-cd $agentpath
+cd $testpath
 
-echo -e "\e[1;32mbegin build agent server\e[0m"
+echo -en "\e[1;32mstart build $projectName : \e[0m"
 
-go build -o AgentServer main.go
+go build -o $projectName main.go
+
 ret=$?
 if [ $ret -eq 0 ];then
-	echo -e "\e[1;32mbuild agent server successful\e[0m"
+	echo -e "\e[1;32m 【ok】\e[0m"
 else
-	echo -e "\e[1;32mbuild agent server failed\e[0m"
+	echo -e "\e[1;32m 【failed】\e[0m"
 fi
-
 
