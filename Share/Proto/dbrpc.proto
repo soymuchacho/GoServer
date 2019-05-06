@@ -1,0 +1,15 @@
+syntax = "proto3";
+package dbrpc;
+
+// test rpc
+message TestDBRequest {
+	  string test = 1;
+}
+
+message TestDBResponse {
+	  string reply = 1;
+}
+
+service Mysql {
+	rpc TestDBServer(TestDBRequest) returns (TestDBResponse){}
+}
