@@ -60,7 +60,6 @@ func main() {
 	}()
 
 	// Test Http
-
 	hpDrive := network.NewHttpDriver()
 	hpDrive.AddRouter("GET", "/test", func(c *gin.Context) {
 		log.Debug("Get /test")

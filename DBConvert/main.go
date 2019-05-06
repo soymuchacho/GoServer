@@ -104,11 +104,11 @@ func main() {
 			// 表前缀
 			Prefix("table_").
 			// 是否添加json tag
-			EnableJsonTag(true).
+			EnableJsonTag(false).
 			// 生成struct的包名(默认为空的话, 则取名为: package model)
 			PackageName("dbmodel").
 			// tag字段的key值,默认是orm
-			TagKey("orm").
+			TagKey("gorm").
 			// whether to add a structure method to get the table name
 			RealNameMethod("TableName").
 			// the path where to save the generated structure

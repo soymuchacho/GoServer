@@ -37,8 +37,15 @@ type HttpServCfg struct {
 	Address string
 }
 
+type RpcNetCfg struct {
+	Name     string
+	ConnType string // "listen" "connect"
+	Address  string
+}
+
 type Config struct {
 	ServName string
+	RpcCfg   []*RpcNetCfg
 	NetCfg   *NetworkCfg
 	DbCfgs   []*DbServCfg // one DBServCfg corresponds to one db connection
 	HttpCfg  *HttpServCfg

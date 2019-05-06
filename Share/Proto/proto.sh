@@ -1,11 +1,14 @@
 #!/bin/bash
 
-rpcprotos="mysqlrpc.proto redisrpc.proto"
+rpcname="dbrpc redisrpc"
 
-for fl in ${rpcprotos}
+for fl in ${rpcname}
 do
-	echo "protoc --go_out=plugins=grpc:. "$fl
-	protoc --go_out=plugins=grpc:. $fl
+	echo "protoc --go_out=plugins=grpc:. "${fl}.proto
+	protoc --go_out=plugins=grpc:. ${fl}.proto
+	
+	mkdir ${fl} 
+	cp -rt ./${fl}  ./${fl}.pb.go 
 done
 
 read -p "Enter To Exit..."
