@@ -4,15 +4,10 @@ import (
 	"GoServer/AgentServer/handle"
 	"GoServer/Common/config"
 	"GoServer/Common/network"
-	"GoServer/Common/srpc"
-	"context"
-	"errors"
 	"os"
 	"public"
 	"runtime"
 	"time"
-
-	pb "GoServer/Share/Proto/dbrpc"
 
 	"github.com/Unknwon/goconfig"
 	log "github.com/cihub/seelog"
@@ -101,36 +96,7 @@ func InitRpc(config *config.Config) error {
 		if rpcinfo.ConnType == "connect" {
 			// connect
 			log.Debug("rpc connect")
-			hwd := srpc.NewSrpcClient(rpcinfo.Name)
-			err := hwd.StartRpcClient(rpcinfo.Address)
-			if err != nil {
-				log.Debugf("connect rpc server error : address %v", rpcinfo.Address)
-				return errors.New("connect rpc server error")
-			}
-
-			c := pb.NewDBClient(hwd.Conn)
-
-			r, err := c.TestDBServer(context.Background(), &pb.MsgTestDBRequest{Test: " Redis Test "})
-			if err != nil {
-				log.Debugf("Request Redis Test Error %v", err)
-			} else {
-				log.Debugf("Request test rpc success : %v", r)
-			}
-
-			r2, err := c.Register(context.Background(), &pb.MsgRegisterReq{Peerid: rpcinfo.Name})
-			if err != nil {
-				log.Error("The agent register db Error!")
-				hwd.StopRpcClient()
-				return errors.New("register db service error!")
-			} else {
-				if r2.Result == 0 {
-					log.Debugf("The agent register db successful!")
-				} else {
-					hwd.StopRpcClient()
-					return errors.New("register db service error!")
-				}
-			}
-			go handle.HandleHeartBeat(rpcinfo.Name, hwd)
+			go handle.ConnectRpc(rpcinfo.Name, rpcinfo.Address)
 		} else {
 			// listen
 		}

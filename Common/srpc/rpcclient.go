@@ -46,8 +46,7 @@ func (this *SrpcClient) StartRpcClient(address string) (err error) {
 
 func (this *SrpcClient) ReConnect() error {
 	this.StopRpcClient()
-	this.StartRpcClient(this.Address)
-	return nil
+	return this.StartRpcClient(this.Address)
 }
 
 func (this *SrpcClient) StopRpcClient() error {
