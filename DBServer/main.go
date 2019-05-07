@@ -69,8 +69,11 @@ func dbServer(config *config.Config) error {
 }
 
 func rpcServer(config *config.Config) error {
+	log.Debug("rpc server len ", len(config.RpcCfg))
 	for _, cfg := range config.RpcCfg {
+
 		if cfg.ConnType == "listen" {
+			log.Debug("listen ", cfg.Address)
 			handle := srpc.NewSrpcServer()
 			if handle == nil {
 				log.Error("cant new srpc server ")
@@ -78,18 +81,20 @@ func rpcServer(config *config.Config) error {
 			}
 
 			err := handle.StartRedisServer(cfg.Address, func() error {
-				log.Info("register redis server rpc")
-				pb.RegisterMysqlServer(handle.GrpcServer, &rpcapi.DBRpcServer{})
+				log.Info("register db server rpc")
+				pb.RegisterDBServer(handle.GrpcServer, &rpcapi.DBRpcServer{})
 				return nil
 			})
 
 			if err != nil {
-				log.Error("error start redis rpc : ", err)
+				log.Error("error start db rpc : ", err)
 				return err
 			}
-			go handle.Serve()
-		} else {
 
+			go handle.Serve()
+			log.Debug("rpc start : ", cfg.Address)
+		} else {
+			log.Debug("connect ", cfg.Address)
 		}
 	}
 	return nil

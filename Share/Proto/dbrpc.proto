@@ -2,14 +2,33 @@ syntax = "proto3";
 package dbrpc;
 
 // test rpc
-message TestDBRequest {
-	  string test = 1;
+message msgTestDBRequest {
+	string test = 1;
 }
 
-message TestDBResponse {
-	  string reply = 1;
+message msgTestDBResponse {
+	string reply = 1;
 }
 
-service Mysql {
-	rpc TestDBServer(TestDBRequest) returns (TestDBResponse){}
+// login
+message msgRegisterReq {
+	string peerid = 1;
+}
+
+message msgRegisterAck {
+	int32 result = 1;
+}
+
+// HeartBeat
+message msgHeartBeatReq {
+	string peerid = 1;
+}
+
+message msgHeartBeatAck {
+}
+
+service DB {
+	rpc TestDBServer(msgTestDBRequest) returns (msgTestDBResponse){}
+	rpc Register(msgRegisterReq) returns (msgRegisterAck){}
+	rpc HeartBeat(stream msgHeartBeatReq) returns (msgHeartBeatAck){}
 }

@@ -36,9 +36,37 @@ func serverConfig() (*config.Config, error) {
 	}
 
 	gCfg = cfg
+	err = rpcConfig()
+	if err != nil {
+		return servCfg, err
+	}
+
 	err = mysqlConfig()
+	if err != nil {
+		return servCfg, err
+	}
 
 	return servCfg, err
+}
+
+func rpcConfig() error {
+	var rpccfg []*config.RpcNetCfg
+	rpcaddr, err := gCfg.GetValue("rpc", "rpcaddress")
+	if err != nil {
+		log.Error("no rpc rpcaddress config !")
+		return err
+	} else {
+		log.Debug("read config rpc rpcaddress ", rpcaddr)
+	}
+
+	rpccfg = append(rpccfg, &config.RpcNetCfg{
+		Name:     "dbrpc",
+		ConnType: "listen",
+		Address:  rpcaddr,
+	})
+
+	servCfg.RpcCfg = rpccfg
+	return nil
 }
 
 func mysqlConfig() error {
