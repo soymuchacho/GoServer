@@ -7,7 +7,7 @@ cd $testpath
 
 echo -en "\e[1;32mstart build $projectName : \e[0m"
 
-go build -o $projectName serverConfig.go main.go
+go build -o $projectName *.go
 
 ret=$?
 if [ $ret -eq 0 ];then

@@ -1,10 +1,9 @@
 package main
 
 import (
-	"GoServer/Common/config"
-	"GoServer/Common/network"
-	"GoServer/TestServer/handle"
+	"config"
 	"net/http"
+	"network"
 	"os"
 	"runtime"
 	"time"
@@ -50,7 +49,7 @@ func main() {
 
 	// Test Client
 	go func() {
-		var handler handle.NetHandler
+		var handler NetHandler
 		netDriver := network.NewNetDriver(handler)
 		err := netDriver.TcpConnect(config)
 		if err != nil {

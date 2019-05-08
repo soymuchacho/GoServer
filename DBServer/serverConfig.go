@@ -1,7 +1,7 @@
 package main
 
 import (
-	"GoServer/Common/config"
+	"config"
 	"strings"
 
 	"github.com/Unknwon/goconfig"

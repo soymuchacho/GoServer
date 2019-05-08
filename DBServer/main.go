@@ -1,17 +1,15 @@
 package main
 
 import (
-	"GoServer/Common/config"
-	"GoServer/Common/db"
-	"GoServer/Common/srpc"
-	"GoServer/DBServer/model"
-	"GoServer/DBServer/rpcapi"
+	"config"
+	"db"
 	"errors"
 	"os"
 	"public"
+	"srpc"
 	"time"
 
-	pb "GoServer/Share/Proto/dbrpc"
+	pb "dbrpc"
 
 	log "github.com/cihub/seelog"
 )
@@ -58,9 +56,9 @@ func dbServer(config *config.Config) error {
 		return err
 	}
 
-	dbdriver.GetDB("test").AutoMigrate(&model.User{})
+	dbdriver.GetDB("test").AutoMigrate(&User{})
 
-	var user model.User
+	var user User
 	dbdriver.GetDB("test").First(&user, 1) // find product with id 1
 	log.Debug("name ", user.Name, " id ", user.ID)
 	dbdriver.GetDB("test").First(&user, "name = ?", "mytest") // find product with code l1212
@@ -82,7 +80,7 @@ func rpcServer(config *config.Config) error {
 
 			err := handle.StartRedisServer(cfg.Address, func() error {
 				log.Info("register db server rpc")
-				pb.RegisterDBServer(handle.GrpcServer, &rpcapi.DBRpcServer{})
+				pb.RegisterDBServer(handle.GrpcServer, &DBRpcServer{})
 				return nil
 			})
 
