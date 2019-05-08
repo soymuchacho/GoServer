@@ -1,7 +1,7 @@
 package network
 
 import (
-	"GoServer/Common/config"
+	"config"
 	"encoding/binary"
 	"io"
 	"net"

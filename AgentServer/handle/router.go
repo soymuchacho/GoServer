@@ -1,5 +1,0 @@
-package handle
-
-func route() {
-
-}

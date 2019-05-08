@@ -1,13 +1,13 @@
 package main
 
 import (
-	"GoServer/AgentServer/handle"
-	"GoServer/Common/config"
-	"GoServer/Common/network"
 	"os"
 	"public"
 	"runtime"
 	"time"
+
+	"config"
+	"network"
 
 	"github.com/Unknwon/goconfig"
 	log "github.com/cihub/seelog"
@@ -78,7 +78,7 @@ func main() {
 		RpcCfg: rpcinfo,
 	}
 
-	var handler handle.NetHandler
+	var handler NetHandler
 	netDriver := network.NewNetDriver(handler)
 
 	go netDriver.TcpServer(config)
@@ -96,7 +96,7 @@ func InitRpc(config *config.Config) error {
 		if rpcinfo.ConnType == "connect" {
 			// connect
 			log.Debug("rpc connect")
-			go handle.ConnectRpc(rpcinfo.Name, rpcinfo.Address)
+			go ConnectRpc(rpcinfo.Name, rpcinfo.Address)
 		} else {
 			// listen
 		}

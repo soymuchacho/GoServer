@@ -1,7 +1,7 @@
 package db
 
 import (
-	"GoServer/Common/config"
+	"config"
 	"fmt"
 	"reflect"
 

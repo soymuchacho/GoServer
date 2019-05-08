@@ -1,7 +1,7 @@
 package network
 
 import (
-	"GoServer/Common/config"
+	"config"
 
 	log "github.com/cihub/seelog"
 	"github.com/xtaci/kcp-go"

@@ -3,7 +3,7 @@ package network
 import (
 	"net"
 
-	"GoServer/Common/config"
+	"config"
 
 	log "github.com/cihub/seelog"
 )
