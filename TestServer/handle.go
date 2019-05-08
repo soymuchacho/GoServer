@@ -1,7 +1,7 @@
 package main
 
 import (
-	"GoServer/Common/network"
+	"network"
 	"time"
 
 	log "github.com/cihub/seelog"

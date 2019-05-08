@@ -4,12 +4,13 @@ go 1.12
 
 require (
 	config v0.0.0-00010101000000-000000000000 // indirect
+	db v0.0.0-00010101000000-000000000000 // indirect
 	dbrpc v0.0.0-00010101000000-000000000000 // indirect
 	github.com/Unknwon/goconfig v0.0.0-20190425194916-3dba17dd7b9e // indirect
 	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575 // indirect
 	github.com/gin-gonic/gin v1.4.0 // indirect
-	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/gohouse/converter v0.0.3 // indirect
+	github.com/jinzhu/gorm v1.9.7 // indirect
 	github.com/klauspost/cpuid v1.2.1 // indirect
 	github.com/klauspost/reedsolomon v1.9.1 // indirect
 	github.com/pkg/errors v0.8.1 // indirect
