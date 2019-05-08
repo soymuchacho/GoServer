@@ -12,24 +12,27 @@ import (
 )
 
 var hwdMtx sync.Mutex
-var funcHwd pb.DBClient
 
-func SetFuncHwd(c pb.DBClient) {
+// the handle of dbrpc interface
+var funcHandle pb.DBClient
+
+func SetFuncHandle(c pb.DBClient) {
 	hwdMtx.Lock()
 	defer hwdMtx.Unlock()
 
-	funcHwd = c
+	funcHandle = c
 }
 
-func GetFuncHwd() pb.DBClient {
+func GetFuncHandle() pb.DBClient {
 	hwdMtx.Lock()
 	defer hwdMtx.Unlock()
 
-	return funcHwd
+	return funcHandle
 }
 
-const HEART_BEAT_TIME_OUT = 30
+const HEART_BEAT_TIME_OUT = 30 // dbrpc heart beat timeout
 
+// connect to rpc server
 func ConnectRpc(name string, addr string) error {
 
 	hwd := srpc.NewSrpcClient(name)
@@ -39,9 +42,9 @@ func ConnectRpc(name string, addr string) error {
 		return errors.New("connect rpc server error")
 	}
 
-	SetFuncHwd(pb.NewDBClient(hwd.Conn))
+	SetFuncHandle(pb.NewDBClient(hwd.Conn))
 
-	r, err := GetFuncHwd().TestDBServer(context.Background(), &pb.MsgTestDBRequest{Test: " Redis Test "})
+	r, err := GetFuncHandle().TestDBServer(context.Background(), &pb.MsgTestDBRequest{Test: " Redis Test "})
 	if err != nil {
 		log.Debugf("Request Redis Test Error %v", err)
 	} else {
@@ -49,7 +52,6 @@ func ConnectRpc(name string, addr string) error {
 	}
 
 	for {
-
 		// the function of HandleHeartBeat is block
 		HandleHeartBeat(name)
 
@@ -61,14 +63,15 @@ func ConnectRpc(name string, addr string) error {
 			log.Debugf("ReConnect Rpc Server[%v] Error [%v] ", hwd.Address, err)
 			continue
 		}
-		SetFuncHwd(pb.NewDBClient(hwd.Conn))
+		SetFuncHandle(pb.NewDBClient(hwd.Conn))
 	}
 	return nil
 }
 
+// the function of heartbeat to checking rpc connection
 func HandleHeartBeat(peerid string) error {
 	// first to register
-	r2, err := GetFuncHwd().Register(context.Background(), &pb.MsgRegisterReq{Peerid: peerid})
+	r2, err := GetFuncHandle().Register(context.Background(), &pb.MsgRegisterReq{Peerid: peerid})
 	if err != nil {
 		log.Error("The agent register db Error!")
 		return errors.New("register db service error!")
@@ -84,7 +87,7 @@ func HandleHeartBeat(peerid string) error {
 	timeout := time.NewTimer(HEART_BEAT_TIME_OUT * time.Second)
 	defer timeout.Stop()
 
-	putStream, err := funcHwd.HeartBeat(context.Background())
+	putStream, err := GetFuncHandle().HeartBeat(context.Background())
 	if err != nil {
 		return err
 	}
