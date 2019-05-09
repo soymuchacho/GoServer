@@ -34,4 +34,6 @@ replace (
 	public => ./Common/public
 	redisrpc => ./Share/Proto/redisrpc
 	srpc => ./Common/srpc
+	sys => github.com/golang/sys
+	net => github.com/golang/net
 )
