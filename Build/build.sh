@@ -20,6 +20,7 @@ Archive(){
 	tar -czf ${PROJECT_NAME}-${BUILD_VERSION}.tar $dir
 
 	mv ${PROJECT_NAME}-${BUILD_VERSION}.tar ../
+	rm $dir -rf
 }
 
 
@@ -45,7 +46,9 @@ case "$1" in
 		./build_convert.sh
 		./build_db.sh
 		./build_test.sh
-		Archive
+		if [ $# == 2 ];then
+			Archive
+		fi	
 		;;
 	*)
 		echo "Usage: build.sh {proto|agent|convert|db|test|all}"
